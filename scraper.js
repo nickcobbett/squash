@@ -53,16 +53,15 @@ var fetchMatchData = () => {
 
   request('http://www.calsquash.com/boxleague/s4.php?file=current.players', (err, success, body) => {
     var $ = cheerio.load(body)
-// .first().parsetable(false, false, false)
     cheerioTableparser($);
-    // var table = $('table')
-    // console.log('table: ', table)
+
+    var tables = [];
     $('table').each(function() {
-      // cheerioTableparser($(this))
-      console.log($(this).parsetable(false, false, true))
+      tables.push(($(this).parsetable(false, false, true)).slice(1, -2))
     })
-    // var matches = joinOpponentsAndScores(parseMatchOpponents(table), parseMatchScores(table));
-    // console.log('matches: ', matches)
+    // console.log(tables)
+    var matches = joinOpponentsAndScores(parseMatchOpponents(tables[0]), parseMatchScores(tables[0]));
+    console.log('matches: ', matches)
 
 
   })
