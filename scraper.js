@@ -60,9 +60,12 @@ var fetchMatchData = () => {
       tables.push(($(this).parsetable(false, false, true)).slice(1, -2))
     })
     // console.log(tables)
-    var matches = joinOpponentsAndScores(parseMatchOpponents(tables[0]), parseMatchScores(tables[0]));
+    // var matches = joinOpponentsAndScores(parseMatchOpponents(tables[1]), parseMatchScores(tables[1]));
+    var matches = []
+    tables.forEach(table => {
+      matches = matches.concat(joinOpponentsAndScores(parseMatchOpponents(table), parseMatchScores(table)));
+    });
     console.log('matches: ', matches)
-
 
   })
 }
