@@ -7,8 +7,8 @@ var request = require('request');
 var cheerio = require('cheerio');
 var cheerioTableparser = require('cheerio-tableparser');
 var fs = require('fs');
-require('console.table');
-
+// require('console.table');
+var matchData = require('./matches.json').matches;
 
 var parseMatchScores = (array) => {
   var arr = JSON.parse(JSON.stringify(array));
@@ -41,16 +41,29 @@ var parseMatchOpponents = (array) => {
   return matchUps;
 };
 
-var joinOpponentsAndScores = (matchUps, scores) => {
+var joinOpponentsAndScores = (matchUps, scores, month) => {
   return scores.map((score, i) => {
-    return matchUps[i].concat(score);
+    return matchUps[i].concat(score, month);
   });
 };
 
-var fetchMatchData = () => {
+var baseUrl = 'http://www.calsquash.com/boxleague';
+var currentUrl = '/s4.php?file=current.players';
 
-  request('http://www.calsquash.com/boxleague/s4.php?file=current.players', (err, success, body) => {
+var testURL = '/dec09.html';
+
+var fetchMatchData = (url) => {
+
+  request(url, (err, success, body) => {
     var $ = cheerio.load(body);
+
+    var nextUrl = $('ul li a').attr('href').slice(1);
+    console.log('nextUrl', nextUrl);
+
+    var title = $('h1').text();
+    var month = title.slice(title.indexOf('-') + 2);
+    console.log('month: ', month);
+
     cheerioTableparser($);
 
     var tables = [];
@@ -59,9 +72,9 @@ var fetchMatchData = () => {
     });
     var matches = []; // concat all matches into one array for the month
     tables.forEach(table => {
-      matches = matches.concat(joinOpponentsAndScores(parseMatchOpponents(table), parseMatchScores(table)));
+      matches = matches.concat(joinOpponentsAndScores(parseMatchOpponents(table), parseMatchScores(table), month));
     });
-    console.log('matches: ', matches);
+    // console.log('matches: ', matches);
 
     //convert file to javasript object
     fs.readFile('./matches.json', 'utf-8', ((err, data) => {
@@ -69,7 +82,7 @@ var fetchMatchData = () => {
         throw err;
       }
       var arrayOfObjects = JSON.parse(data);
-      arrayOfObjects.matches = matches;
+      arrayOfObjects.matches = arrayOfObjects.matches.concat(matches);
 
       fs.writeFile('./matches.json', JSON.stringify(arrayOfObjects), (err) => {
         if (err) {
@@ -79,7 +92,46 @@ var fetchMatchData = () => {
       });
     }));
 
+    if (nextUrl !== currentUrl) {
+      currentUrl = nextUrl;
+      fetchMatchData(baseUrl + nextUrl);
+    } else {
+      console.log('All match data received!');
+      return;
+    }
+
   });
 };
 
-fetchMatchData();
+fetchMatchData(baseUrl + testURL);
+
+
+var generatePlayersList = function(matches) {
+  var players = [];
+  matches.forEach(match => {
+    players.push(match[0]);
+    players.push(match[1]);
+  });
+
+  var uniques = players.filter((val, i, array) => {
+    return array.indexOf(val) === i;
+  });
+
+  fs.writeFile('players.json', uniques, (err) => {
+    if (err) {
+      throw err;
+    }
+    console.log('Players saved!');
+  });
+  // return uniques;
+};
+// generatePlayersList(matchData);
+
+var searchForMatchesByName = (matches, name) => {
+  return matches.filter(match => {
+    return match[0] === name || match[1] === name;
+  });
+};
+// var nicks = searchForMatchesByName(matchData, 'Nick Cobbett');
+// var nickAndSam = searchForMatchesByName(nicks, 'Sam Sternberg');
+// console.log(nickAndSam);
