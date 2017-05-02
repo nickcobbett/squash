@@ -47,22 +47,23 @@ var joinOpponentsAndScores = (matchUps, scores, month) => {
   });
 };
 
-var baseUrl = 'http://www.calsquash.com/boxleague';
-var currentUrl = '/s4.php?file=current.players';
+var baseURL = 'http://www.calsquash.com/boxleague';
+var currentMonth = '/s4.php?file=current.players';
 
-var testURL = '/dec09.html';
+// {
+//   "matches": []
+// }
+var URLStack = ['/jul03.html', '/aug03.html', '/sep03.html', '/oct03.html', '/nov03.html', '/feb04.html', '/mar04.html', '/apr04.html', '/may04.html', '/jun04.html', '/jul04.html', '/oct04.html', '/nov04.html', '/jan05.html', '/feb05.html', '/mar06.html', '/apr06.html', '/jul09.html', '/sep09.html', '/nov09.html', '/jul09.html', currentMonth];
+// var currentURL = URLStack[URLStack.length - 1];
 
 var fetchMatchData = (url) => {
 
   request(url, (err, success, body) => {
     var $ = cheerio.load(body);
 
-    var nextUrl = $('ul li a').attr('href').slice(1);
-    console.log('nextUrl', nextUrl);
-
     var title = $('h1').text();
     var month = title.slice(title.indexOf('-') + 2);
-    console.log('month: ', month);
+    // console.log('month: ', month);
 
     cheerioTableparser($);
 
@@ -76,25 +77,47 @@ var fetchMatchData = (url) => {
     });
     // console.log('matches: ', matches);
 
-    //convert file to javasript object
-    fs.readFile('./matches.json', 'utf-8', ((err, data) => {
-      if (err) {
-        throw err;
-      }
-      var arrayOfObjects = JSON.parse(data);
-      arrayOfObjects.matches = arrayOfObjects.matches.concat(matches);
+    // //convert file to javasript object
+    // fs.readFile('./matches.json', 'utf-8', ((err, data) => {
+    //   if (err) {
+    //     throw err;
+    //   }
+    //   var arrayOfObjects = JSON.parse(data);
+    //   arrayOfObjects.matches = arrayOfObjects.matches.concat(matches);
 
-      fs.writeFile('./matches.json', JSON.stringify(arrayOfObjects), (err) => {
-        if (err) {
-          throw err;
-        }
-        console.log('The file has been saved!');
-      });
-    }));
+    //   fs.writeFile('./matches.json', JSON.stringify(arrayOfObjects), (err) => {
+    //     if (err) {
+    //       throw err;
+    //     }
+    //     console.log('The file has been saved!');
+    //   });
+    // }));
 
-    if (nextUrl !== currentUrl) {
-      currentUrl = nextUrl;
-      fetchMatchData(baseUrl + nextUrl);
+    var currentURL = url.slice(baseURL.length);
+    var nextURL;
+    if ($('ul li a').attr('href')) {
+      nextURL = $('ul li a').attr('href').slice(1);
+    } else {
+      nextURL = URLStack.pop();
+    }
+    console.log('nextURL', nextURL);
+    console.log('currentURL: ', currentURL);
+
+    // convert path to filename
+    var fileName = currentURL.slice(currentURL.indexOf('/') + 1).slice(0, -currentURL.indexOf('.') + 1) + '.json';
+
+
+
+
+    if (currentURL === '/feb04.html') {
+      console.log('Done');
+      return;
+    } else if (nextURL !== currentURL) {
+      URLStack.push(nextURL);
+      fetchMatchData(baseURL + URLStack.pop());
+    } else if (URLStack.length) {
+      console.log('poppedURL', URLStack[URLStack.length - 1]);
+      fetchMatchData(baseURL + URLStack.pop());
     } else {
       console.log('All match data received!');
       return;
@@ -103,7 +126,7 @@ var fetchMatchData = (url) => {
   });
 };
 
-fetchMatchData(baseUrl + testURL);
+fetchMatchData(baseURL + URLStack.pop());
 
 
 var generatePlayersList = function(matches) {
