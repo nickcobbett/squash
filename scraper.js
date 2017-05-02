@@ -1,14 +1,10 @@
-/*not installed
-var express = require('express');
-var app     = express();
-var bodyParser = require('body-parser');
-*/
 var request = require('request');
 var cheerio = require('cheerio');
 var cheerioTableparser = require('cheerio-tableparser');
 var fs = require('fs');
+// var uri = require('url');
 // require('console.table');
-var matchData = require('./matches.json').matches;
+// var matchData = require('./matches.json').matches;
 
 var parseMatchScores = (array) => {
   var arr = JSON.parse(JSON.stringify(array));
@@ -23,7 +19,6 @@ var parseMatchScores = (array) => {
       matchScores.push([justTheScores[i + 1 + k].shift(), justTheScores[i][k]]);
     }
   }
-
   return matchScores;
 };
 
@@ -41,92 +36,66 @@ var parseMatchOpponents = (array) => {
   return matchUps;
 };
 
-var joinOpponentsAndScores = (matchUps, scores, month) => {
+var joinMatchData = (matchUps, scores, month) => {
   return scores.map((score, i) => {
     return matchUps[i].concat(score, month);
   });
 };
 
-var baseURL = 'http://www.calsquash.com/boxleague';
-var currentMonth = '/s4.php?file=current.players';
 
-// {
-//   "matches": []
-// }
-var URLStack = ['/jul03.html', '/aug03.html', '/sep03.html', '/oct03.html', '/nov03.html', '/feb04.html', '/mar04.html', '/apr04.html', '/may04.html', '/jun04.html', '/jul04.html', '/oct04.html', '/nov04.html', '/jan05.html', '/feb05.html', '/mar06.html', '/apr06.html', '/jul09.html', '/sep09.html', '/nov09.html', '/jul09.html', currentMonth];
-// var currentURL = URLStack[URLStack.length - 1];
+var scrape = (req, res) => {
 
-var fetchMatchData = (url) => {
+  var baseURL = 'http://www.calsquash.com/boxleague';
+  var currentMonth = '/s4.php?file=current.players';
 
-  request(url, (err, success, body) => {
-    var $ = cheerio.load(body);
+  // var URLStack = ['/jul03.html', '/aug03.html', '/sep03.html', '/oct03.html', '/nov03.html', '/feb04.html', '/mar04.html', '/apr04.html', '/may04.html', '/jun04.html', '/jul04.html', '/oct04.html', '/nov04.html', '/jan05.html', '/feb05.html', '/mar06.html', '/apr06.html', '/jul09.html', '/sep09.html', '/nov09.html', '/jul09.html', currentMonth];
+  var URLStack = ['/feb04.html', '/mar04.html'];  // smaller batch for testing
 
-    var title = $('h1').text();
-    var month = title.slice(title.indexOf('-') + 2);
-    // console.log('month: ', month);
+  var fetchURLs = (url, cb) => {
 
-    cheerioTableparser($);
+    request(url, (err, success, body) => {
+      var $ = cheerio.load(body);
 
-    var tables = [];
-    $('table').each(function() {
-      tables.push(($(this).parsetable(false, false, true)).slice(1, -2));
+      // parse match data
+      cheerioTableparser($);
+      var month = url.slice(url.lastIndexOf('/') + 1, -5);
+      var tables = [];
+      $('table').each(function() {
+        tables.push(($(this).parsetable(false, false, true)).slice(1, -2));
+      });
+      var matches = []; // concat all matches into one array for the month
+      tables.forEach(table => {
+        matches = matches.concat(joinMatchData(parseMatchOpponents(table), parseMatchScores(table), month));
+      });
+      // console.log('matches: ', matches);
+
+      // find previous month's data
+      var currentURL = url.slice(baseURL.length);
+      var nextURL;
+      if ($('ul li a').attr('href')) {
+        nextURL = $('ul li a').attr('href').slice(1);
+      } else {
+        nextURL = URLStack.pop();
+      }
+      console.log('nextURL', nextURL);
+      console.log('currentURL: ', currentURL);
+
+      if (currentURL === '/feb04.html') {
+        console.log('Done');
+        cb.send(matches);
+        return;
+      } else if (nextURL !== currentURL) {
+        URLStack.push(nextURL);
+        fetchURLs(baseURL + URLStack.pop(), cb);
+      } else if (URLStack.length) {
+        console.log('poppedURL', URLStack[URLStack.length - 1]);
+        fetchURLs(baseURL + URLStack.pop(), cb);
+      }
+
     });
-    var matches = []; // concat all matches into one array for the month
-    tables.forEach(table => {
-      matches = matches.concat(joinOpponentsAndScores(parseMatchOpponents(table), parseMatchScores(table), month));
-    });
-    // console.log('matches: ', matches);
-
-    // //convert file to javasript object
-    // fs.readFile('./matches.json', 'utf-8', ((err, data) => {
-    //   if (err) {
-    //     throw err;
-    //   }
-    //   var arrayOfObjects = JSON.parse(data);
-    //   arrayOfObjects.matches = arrayOfObjects.matches.concat(matches);
-
-    //   fs.writeFile('./matches.json', JSON.stringify(arrayOfObjects), (err) => {
-    //     if (err) {
-    //       throw err;
-    //     }
-    //     console.log('The file has been saved!');
-    //   });
-    // }));
-
-    var currentURL = url.slice(baseURL.length);
-    var nextURL;
-    if ($('ul li a').attr('href')) {
-      nextURL = $('ul li a').attr('href').slice(1);
-    } else {
-      nextURL = URLStack.pop();
-    }
-    console.log('nextURL', nextURL);
-    console.log('currentURL: ', currentURL);
-
-    // convert path to filename
-    var fileName = currentURL.slice(currentURL.indexOf('/') + 1).slice(0, -currentURL.indexOf('.') + 1) + '.json';
-
-
-
-
-    if (currentURL === '/feb04.html') {
-      console.log('Done');
-      return;
-    } else if (nextURL !== currentURL) {
-      URLStack.push(nextURL);
-      fetchMatchData(baseURL + URLStack.pop());
-    } else if (URLStack.length) {
-      console.log('poppedURL', URLStack[URLStack.length - 1]);
-      fetchMatchData(baseURL + URLStack.pop());
-    } else {
-      console.log('All match data received!');
-      return;
-    }
-
-  });
+  };
+  fetchURLs(baseURL + URLStack.pop(), res);
 };
-
-fetchMatchData(baseURL + URLStack.pop());
 
 
 var generatePlayersList = function(matches) {
@@ -155,6 +124,28 @@ var searchForMatchesByName = (matches, name) => {
     return match[0] === name || match[1] === name;
   });
 };
+
+module.exports.scrape = scrape;
+
 // var nicks = searchForMatchesByName(matchData, 'Nick Cobbett');
 // var nickAndSam = searchForMatchesByName(nicks, 'Sam Sternberg');
 // console.log(nickAndSam);
+
+
+
+
+    // //convert file to javasript object
+    // fs.readFile('./matches.json', 'utf-8', ((err, data) => {
+    //   if (err) {
+    //     throw err;
+    //   }
+    //   var arrayOfObjects = JSON.parse(data);
+    //   arrayOfObjects.matches = arrayOfObjects.matches.concat(matches);
+
+    //   fs.writeFile('./matches.json', JSON.stringify(arrayOfObjects), (err) => {
+    //     if (err) {
+    //       throw err;
+    //     }
+    //     console.log('The file has been saved!');
+    //   });
+    // }));
