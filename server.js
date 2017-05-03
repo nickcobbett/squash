@@ -9,6 +9,8 @@ app.get('/', router.scrape);
 
 app.post('/players/', router.addPlayer);
 
+app.post('/matches', router.addMatch);
+
 app.listen(3000, function () {
   console.log('Squash app listening on port 3000!');
 });

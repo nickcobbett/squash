@@ -77,6 +77,7 @@ sequelize.sync().then(err => {
   console.log('unable to sync models', err);
 });
 
+exports.Sequelize = Sequelize;
 exports.sequelize = sequelize;
 exports.Player = Player;
 exports.Match = Match;

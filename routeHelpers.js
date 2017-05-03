@@ -81,7 +81,7 @@ var scrape = (req, res) => {
       console.log('currentURL: ', currentURL);
 
       if (currentURL === '/feb04.html') {
-        console.log('Done');
+        console.log('Done scraping');
         cb.send(matches);  // send back match data
         return;
       } else if (nextURL !== currentURL) {
@@ -126,13 +126,26 @@ var searchForMatchesByName = (matches, name) => {
 };
 
 var addPlayer = (req, res) => {
-  console.log('req.body', req.body);
-  db.addOnePlayer(req.body.name);
-  res.send(200);
+  db.addOnePlayer(req.body.name).then(player => {
+    res.send('Muy bueno');
+    console.log(player);
+  }).catch(err => {
+    res.send('No bueno');
+    console.log('Error adding Player', err);
+  });
 };
 
-module.exports.scrape = scrape;
-module.exports.addPlayer = addPlayer;
+var addMatch = (req, res) => {
+  db.addOneMatch(req.body).then(match => {
+    console.log(match);
+    res.send('Match saved');
+  }).catch(err => {
+    res.send(err);
+  });
+};
+exports.scrape = scrape;
+exports.addPlayer = addPlayer;
+exports.addMatch = addMatch;
 
 // var nicks = searchForMatchesByName(matchData, 'Nick Cobbett');
 // var nickAndSam = searchForMatchesByName(nicks, 'Sam Sternberg');
