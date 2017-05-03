@@ -6,6 +6,17 @@ var db = require('./db/dbHelpers.js');
 // require('console.table');
 // var matchData = require('./matches.json').matches;
 
+String.prototype.hashCode = function() {
+  var hash = 0, i, chr;
+  if (this.length === 0) return hash;
+  for (i = 0; i < this.length; i++) {
+    chr   = this.charCodeAt(i);
+    hash  = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+};
+
 var parseMatchScores = (array) => {
   var arr = JSON.parse(JSON.stringify(array));
   var matchScores = [];
@@ -56,7 +67,7 @@ var scrape = (req, res) => {
     request(url, (err, success, body) => { // TODO: error handling
       var $ = cheerio.load(body);
 
-      // parse match data
+      // gather this months match data
       cheerioTableparser($);
       var month = url.slice(url.lastIndexOf('/') + 1, -5);
       var tables = [];
@@ -68,6 +79,21 @@ var scrape = (req, res) => {
         matches = matches.concat(joinMatchData(parseMatchOpponents(table), parseMatchScores(table), month));
       });
       // console.log('matches: ', matches);
+
+      // prepare matches for bulk insert
+      var instances = matches.map(match => {
+        return db.createMatchInstance(match);
+      });
+
+      // send match data to db
+      db.insertMatches(instances).then(matches => {
+        console.log(matches);
+      }).catch(err => {
+        console.log('error inserting instances', err);
+      });
+
+
+
 
       // find previous month's data
       var currentURL = url.slice(baseURL.length);
@@ -91,7 +117,6 @@ var scrape = (req, res) => {
         console.log('poppedURL', URLStack[URLStack.length - 1]);
         fetchURLs(baseURL + URLStack.pop(), cb);
       }
-
     });
   };
   fetchURLs(baseURL + URLStack.pop(), res);

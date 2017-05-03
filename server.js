@@ -6,9 +6,9 @@ var router = require('./routeHelpers.js');
 app.use(bodyParser.json());
 
 app.get('/', router.scrape);
+app.get('/initialize', router.scrape);
 
 app.post('/players/', router.addPlayer);
-
 app.post('/matches', router.addMatch);
 
 app.listen(3000, function () {

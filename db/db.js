@@ -42,10 +42,12 @@ var Match = sequelize.define('match', {
     type: Sequelize.STRING
   },
   playerOnePoints: {
-    type: Sequelize.INTEGER
+    type: Sequelize.STRING,
+    allowNull: false
   },
   playerTwoPoints: {
-    type: Sequelize.INTEGER
+    type: Sequelize.STRING,
+    allowNull: false
   },
   winner: {
     type: Sequelize.STRING
@@ -53,9 +55,9 @@ var Match = sequelize.define('match', {
   loser: {
     type: Sequelize.STRING
   },
-  score: {
-    type: Sequelize.INTEGER
-  },
+  // score: {
+  //   type: Sequelize.INTEGER
+  // },
   date: {
     type: Sequelize.STRING
   },
