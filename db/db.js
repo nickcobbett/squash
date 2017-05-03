@@ -35,6 +35,10 @@ var Player = sequelize.define('player', {
 });
 
 var Match = sequelize.define('match', {
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true
+  },
   playerOne: {
     type: Sequelize.STRING
   },
@@ -56,8 +60,9 @@ var Match = sequelize.define('match', {
     type: Sequelize.STRING
   },
   // score: {
-  //   type: Sequelize.INTEGER
+    // type: Sequelize.INTEGER
   // },
+
   date: {
     type: Sequelize.STRING
   },

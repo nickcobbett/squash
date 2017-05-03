@@ -3,15 +3,18 @@ var cheerio = require('cheerio');
 var cheerioTableparser = require('cheerio-tableparser');
 var fs = require('fs');
 var db = require('./db/dbHelpers.js');
-// require('console.table');
-// var matchData = require('./matches.json').matches;
+var Promise = require('bluebird');
 
 String.prototype.hashCode = function() {
-  var hash = 0, i, chr;
-  if (this.length === 0) return hash;
+  var hash = 0;
+  var i;
+  var chr;
+  if (this.length === 0) {
+    return hash;
+  }
   for (i = 0; i < this.length; i++) {
-    chr   = this.charCodeAt(i);
-    hash  = ((hash << 5) - hash) + chr;
+    chr = this.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
     hash |= 0; // Convert to 32bit integer
   }
   return hash;
@@ -47,9 +50,13 @@ var parseMatchOpponents = (array) => {
   return matchUps;
 };
 
-var joinMatchData = (matchUps, scores, month) => {
+var generateId = (players, month) => {
+  return (players[0] + players[1] + month).hashCode();
+};
+
+var joinMatchData = (players, scores, month) => {
   return scores.map((score, i) => {
-    return matchUps[i].concat(score, month);
+    return players[i].concat(score, month, generateId(players[i], month));
   });
 };
 
@@ -67,7 +74,7 @@ var scrape = (req, res) => {
     request(url, (err, success, body) => { // TODO: error handling
       var $ = cheerio.load(body);
 
-      // gather this months match data
+      // gather this month's match data
       cheerioTableparser($);
       var month = url.slice(url.lastIndexOf('/') + 1, -5);
       var tables = [];
@@ -80,16 +87,43 @@ var scrape = (req, res) => {
       });
       // console.log('matches: ', matches);
 
-      // prepare matches for bulk insert
-      var instances = matches.map(match => {
-        return db.createMatchInstance(match);
+      // prepare player data to send to db
+      var players = matches.map(match => {
+        return match[0];
+      }).concat(matches.map(match => {
+        return match[1];
+      })).filter((val, i, arr) => {
+        return arr.indexOf(val) === i;
       });
 
-      // send match data to db
-      db.insertMatches(instances).then(matches => {
-        console.log(matches);
+
+
+      var playerPromises = [];
+      players.forEach(name => {
+        playerPromises.push(db.findOrCreatePlayer(name));
+      });
+
+      Promise.all(playerPromises).then(player => {
+        console.log('player inserted into db!');
       }).catch(err => {
-        console.log('error inserting instances', err);
+        console.log('error inserting player into db: ', err);
+      });
+
+
+      // prepare match data to send to db
+      // filter empty matches
+      var completedMatches = matches.filter(match => {
+        return match[2] !== '' && match[3] !== '';
+      });
+      // prepare matches for bulk insert
+      var matchInstances = completedMatches.map(match => {
+        return db.createMatchInstance(match);
+      });
+      // send to db
+      db.insertMatches(matchInstances).then(matches => {
+        console.log('match inserted!');
+      }).catch(err => {
+        console.log('error inserting matchInstances', err);
       });
 
 
@@ -122,34 +156,18 @@ var scrape = (req, res) => {
   fetchURLs(baseURL + URLStack.pop(), res);
 };
 
-
-var generatePlayersList = function(matches) {
-  var players = [];
-  matches.forEach(match => {
-    players.push(match[0]);
-    players.push(match[1]);
-  });
-
-  var uniques = players.filter((val, i, array) => {
-    return array.indexOf(val) === i;
-  });
-
-  fs.writeFile('players.json', uniques, (err) => {
-    if (err) {
-      throw err;
-    }
-    console.log('Players saved!');
-  });
-  // return uniques;
-};
-// generatePlayersList(matchData);
-
-var searchForMatchesByName = (matches, name) => {
-  return matches.filter(match => {
-    return match[0] === name || match[1] === name;
+var getMatchesByName = (req, res) => {
+  console.log(req.params.name);
+  db.findMatchesByName(req.params.name).then(matches => {
+    res.send(matches);
+  }).catch(err => {
+    res.send('no bueno', err);
   });
 };
 
+
+
+// the following functions for testing with dummy json
 var addPlayer = (req, res) => {
   db.addOnePlayer(req.body.name).then(player => {
     res.send('Muy bueno');
@@ -168,10 +186,38 @@ var addMatch = (req, res) => {
     res.send(err);
   });
 };
+
+exports.getMatchesByName = getMatchesByName;
 exports.scrape = scrape;
 exports.addPlayer = addPlayer;
 exports.addMatch = addMatch;
 
+// var generatePlayersList = function(matches) {
+//   var players = [];
+//   matches.forEach(match => {
+//     players.push(match[0]);
+//     players.push(match[1]);
+//   });
+
+//   var uniques = players.filter((val, i, array) => {
+//     return array.indexOf(val) === i;
+//   });
+
+//   fs.writeFile('players.json', uniques, (err) => {
+//     if (err) {
+//       throw err;
+//     }
+//     console.log('Players saved!');
+//   });
+//   // return uniques;
+// };
+// // generatePlayersList(matchData);
+
+// var searchForMatchesByName = (matches, name) => {
+//   return matches.filter(match => {
+//     return match[0] === name || match[1] === name;
+//   });
+// };
 // var nicks = searchForMatchesByName(matchData, 'Nick Cobbett');
 // var nickAndSam = searchForMatchesByName(nicks, 'Sam Sternberg');
 // console.log(nickAndSam);

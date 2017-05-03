@@ -7,8 +7,9 @@ app.use(bodyParser.json());
 
 app.get('/', router.scrape);
 app.get('/initialize', router.scrape);
+app.get('/matches/:name', router.getMatchesByName);
 
-app.post('/players/', router.addPlayer);
+app.post('/players', router.addPlayer);
 app.post('/matches', router.addMatch);
 
 app.listen(3000, function () {

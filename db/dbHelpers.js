@@ -12,26 +12,6 @@ var determineLoser = (match) => {
   return match[2] < match[3] ? match[0] : match[1];
 };
 
-var getScore = (match) => {
-
-};
-
-var updateRecord = (match) => {
-  //
-};
-
-var createPlayers = (match) => {
-  var players = match.slice(0, 1).map(player => {
-    return Player.findOrCreate({'name': player});
-  });
-
-  return Promise.all(players).then((player) => {
-    console.log(player);
-  }).catch(err => {
-    console.log(err);
-  });
-};
-
 var createMatchInstance = (match) => {
   return {
     playerOne: match[0],
@@ -40,14 +20,46 @@ var createMatchInstance = (match) => {
     playerTwoPoints: match[3],
     winner: determineWinner(match),
     loser: determineLoser(match),
-    date: match[4]
+    date: match[4],
+    id: match[5]
   };
 };
 
-var insertMatches = (matches) => {
-  return Match.bulkCreate(matches);
+var insertMatches = (matchInstances) => {
+  return Match.bulkCreate(matchInstances);
 };
 
+// var createPlayerInstance = (playerName) => {
+//   return {name: playerName};
+// };
+
+var findOrCreatePlayer = (playerName) => {
+  return Player.findOrCreate({
+    where: {name: playerName}
+  });
+};
+
+var findMatchesByName = (name) => {
+  return Match.findAll({
+    where: {
+      $or: [
+        {
+          playerOne: {
+            $eq: name
+          }
+        },
+        {
+          playerTwo: {
+            $eq: name
+          }
+        }
+      ]
+    }
+  });
+};
+
+
+// for testing with dummy json data
 var addOnePlayer = (name) => {
   return Player.create({name: name});
 };
@@ -63,8 +75,33 @@ var addOneMatch = (match) => {
   });
 };
 
+// exports.createPlayerInstance = createPlayerInstance;
+exports.findMatchesByName = findMatchesByName;
+exports.findOrCreatePlayer = findOrCreatePlayer;
 exports.insertMatches = insertMatches;
 exports.createMatchInstance = createMatchInstance;
-exports.createPlayers = createPlayers;
+// exports.createPlayers = createPlayers;
 exports.addOnePlayer = addOnePlayer;
 exports.addOneMatch = addOneMatch;
+
+
+
+// var getScore = (match) => {
+
+// };
+
+// var updateRecord = (match) => {
+//   //
+// };
+
+// var createPlayers = (match) => {
+//   var players = match.slice(0, 1).map(player => {
+//     return Player.findOrCreate({'name': player});
+//   });
+
+//   return Promise.all(players).then((player) => {
+//     console.log(player);
+//   }).catch(err => {
+//     console.log(err);
+//   });
+// };
