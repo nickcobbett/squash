@@ -2,7 +2,7 @@ var request = require('request');
 var cheerio = require('cheerio');
 var cheerioTableparser = require('cheerio-tableparser');
 var fs = require('fs');
-// var uri = require('url');
+
 // require('console.table');
 // var matchData = require('./matches.json').matches;
 
@@ -53,7 +53,7 @@ var scrape = (req, res) => {
 
   var fetchURLs = (url, cb) => {
 
-    request(url, (err, success, body) => {
+    request(url, (err, success, body) => { // TODO: error handling
       var $ = cheerio.load(body);
 
       // parse match data
@@ -82,7 +82,7 @@ var scrape = (req, res) => {
 
       if (currentURL === '/feb04.html') {
         console.log('Done');
-        cb.send(matches);
+        cb.send(matches);  // send back match data
         return;
       } else if (nextURL !== currentURL) {
         URLStack.push(nextURL);
@@ -125,7 +125,11 @@ var searchForMatchesByName = (matches, name) => {
   });
 };
 
+var addPlayer = (req, res) => {
+  // req.body
+};
 module.exports.scrape = scrape;
+module.exports.addPlayer = addPlayer;
 
 // var nicks = searchForMatchesByName(matchData, 'Nick Cobbett');
 // var nickAndSam = searchForMatchesByName(nicks, 'Sam Sternberg');

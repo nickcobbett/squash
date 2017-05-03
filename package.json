@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/nickcobbett/squash#readme",
   "dependencies": {
+    "body-parser": "^1.17.1",
     "cheerio": "^0.22.0",
     "cheerio-tableparser": "^1.0.1",
     "console.table": "^0.8.0",

@@ -1,4 +1,5 @@
 var Sequelize = require('sequelize');
+// var models = require('./model.js');
 
 var sequelize = new Sequelize('squash', 'root', '', {
   host: 'localhost',
@@ -11,6 +12,55 @@ var sequelize = new Sequelize('squash', 'root', '', {
   }
 });
 
+var Player = sequelize.define('player', {
+  name: {
+    type: Sequelize.STRING,
+    unique: true
+  },
+  wins: {
+    type: Sequelize.INTEGER,
+  },
+  losses: {
+    type: Sequelize.INTEGER,
+  },
+  rank: {
+    type: Sequelize.INTEGER
+  },
+  matches: {
+    type: Sequelize.INTEGER,
+  },
+  active: {
+    type: Sequelize.BOOLEAN
+  },
+});
+
+var Match = sequelize.define('match', {
+  playerOne: {
+    type: Sequelize.STRING
+  },
+  playerTwo: {
+    type: Sequelize.STRING
+  },
+  playerOnePoints: {
+    type: Sequelize.INTEGER
+  },
+  playerTwoPoints: {
+    type: Sequelize.INTEGER
+  },
+  winner: {
+    type: Sequelize.STRING
+  },
+  loser: {
+    type: Sequelize.STRING
+  },
+  score: {
+    type: Sequelize.INTEGER
+  },
+  date: {
+    type: Sequelize.STRING
+  },
+});
+
 sequelize
   .authenticate()
   .then(function(err) {
@@ -21,4 +71,23 @@ sequelize
   });
 
 
-module.exports = sequelize;
+sequelize.sync().then(err => {
+  console.log('models synced!');
+}).catch(err => {
+  console.log('unable to sync models', err);
+});
+
+
+
+// Player.sync({force: true}).then(function () {
+//   // Table created
+//   return Player.create({
+//     name: 'test'
+//   });
+// }).catch(err => {
+//   throw err;
+// });
+
+exports = sequelize;
+exports.Player = Player;
+exports.Match = Match;
