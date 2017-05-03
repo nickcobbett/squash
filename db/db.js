@@ -77,17 +77,6 @@ sequelize.sync().then(err => {
   console.log('unable to sync models', err);
 });
 
-
-
-// Player.sync({force: true}).then(function () {
-//   // Table created
-//   return Player.create({
-//     name: 'test'
-//   });
-// }).catch(err => {
-//   throw err;
-// });
-
-exports = sequelize;
+exports.sequelize = sequelize;
 exports.Player = Player;
 exports.Match = Match;

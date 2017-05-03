@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
-var router = require('./scraper.js');
+var router = require('./routeHelpers.js');
 
 app.use(bodyParser.json());
 

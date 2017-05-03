@@ -1,5 +1,5 @@
 var Sequelize = require('sequelize');
-var sequelize = require('./db.js');
+var sequelize = require('./db.js').sequelize;
 var Player = require('./db.js').Player;
 var Match = require('./db.js').Match;
 
@@ -17,5 +17,10 @@ var createPlayers = (match) => {
   });
 };
 
-module.exports.determineWinner = determineWinner;
-module.exports.createPlayers = createPlayers;
+var addOnePlayer = (name) => {
+  Player.create({name: name});
+};
+
+exports.determineWinner = determineWinner;
+exports.createPlayers = createPlayers;
+exports.addOnePlayer = addOnePlayer;

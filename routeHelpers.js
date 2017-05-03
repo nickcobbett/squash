@@ -2,7 +2,7 @@ var request = require('request');
 var cheerio = require('cheerio');
 var cheerioTableparser = require('cheerio-tableparser');
 var fs = require('fs');
-
+var db = require('./db/dbHelpers.js');
 // require('console.table');
 // var matchData = require('./matches.json').matches;
 
@@ -126,8 +126,11 @@ var searchForMatchesByName = (matches, name) => {
 };
 
 var addPlayer = (req, res) => {
-  // req.body
+  console.log('req.body', req.body);
+  db.addOnePlayer(req.body.name);
+  res.send(200);
 };
+
 module.exports.scrape = scrape;
 module.exports.addPlayer = addPlayer;
 
