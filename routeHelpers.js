@@ -60,14 +60,19 @@ var joinMatchData = (players, scores, month) => {
   });
 };
 
-
 var scrape = (req, res) => {
 
   var baseURL = 'http://www.calsquash.com/boxleague';
   var currentMonth = '/s4.php?file=current.players';
+  var oldestMonth = '/feb04.html';
 
-  // var URLStack = ['/jul03.html', '/aug03.html', '/sep03.html', '/oct03.html', '/nov03.html', '/feb04.html', '/mar04.html', '/apr04.html', '/may04.html', '/jun04.html', '/jul04.html', '/oct04.html', '/nov04.html', '/jan05.html', '/feb05.html', '/mar06.html', '/apr06.html', '/jul09.html', '/sep09.html', '/nov09.html', '/jul09.html', currentMonth];
-  var URLStack = ['/feb04.html', '/mar04.html'];  // smaller batch for testing
+  if (req.body.recent) { // only
+    oldestMonth = '/feb17.html';
+  }
+
+
+  var URLStack = ['/feb04.html', '/mar04.html', '/apr04.html', '/may04.html', '/jun04.html', '/jul04.html', '/oct04.html', '/nov04.html', '/jan05.html', '/feb05.html', '/mar06.html', '/apr06.html', '/jul09.html', '/sep09.html', '/nov09.html', '/jul09.html', currentMonth];
+  // var URLStack = ['/feb04.html', '/mar04.html'];  // smaller batch for testing
 
   var fetchURLs = (url, cb) => {
 
@@ -76,7 +81,8 @@ var scrape = (req, res) => {
 
       // gather this month's match data
       cheerioTableparser($);
-      var month = url.slice(url.lastIndexOf('/') + 1, -5);
+      // var month = url.slice(url.lastIndexOf('/') + 1, -5);
+      var month = $('h1').text().slice(24).replace(/ /g, '');
       var tables = [];
       $('table').each(function() {
         tables.push(($(this).parsetable(false, false, true)).slice(1, -2));
@@ -127,8 +133,6 @@ var scrape = (req, res) => {
       });
 
 
-
-
       // find previous month's data
       var currentURL = url.slice(baseURL.length);
       var nextURL;
@@ -140,9 +144,9 @@ var scrape = (req, res) => {
       console.log('nextURL', nextURL);
       console.log('currentURL: ', currentURL);
 
-      if (currentURL === '/feb04.html') {
+      if (currentURL === oldestMonth) {
         console.log('Done scraping');
-        cb.send(matches);  // send back match data
+        cb.send(month);  // send back match data
         return;
       } else if (nextURL !== currentURL) {
         URLStack.push(nextURL);
@@ -162,6 +166,15 @@ var getMatchesByName = (req, res) => {
     res.send(matches);
   }).catch(err => {
     res.send('no bueno', err);
+  });
+};
+
+var getHeadToHead = (req, res) => {
+  var players = req.params.playerOne + ' ' + req.params.playerTwo;
+  db.findHeadToHead(req.params.playerOne, req.params.playerTwo).then(matches => {
+    res.send(matches);
+  }).catch(err => {
+    res.send(err);
   });
 };
 
@@ -187,10 +200,16 @@ var addMatch = (req, res) => {
   });
 };
 
+exports.getHeadToHead = getHeadToHead;
 exports.getMatchesByName = getMatchesByName;
 exports.scrape = scrape;
 exports.addPlayer = addPlayer;
 exports.addMatch = addMatch;
+
+
+  // var olderMonths = ['/jul03.html', '/aug03.html', '/sep03.html', '/oct03.html', '/nov03.html'];
+
+
 
 // var generatePlayersList = function(matches) {
 //   var players = [];

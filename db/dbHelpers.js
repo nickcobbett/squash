@@ -57,7 +57,10 @@ var findMatchesByName = (name) => {
     }
   });
 };
-
+// select * from matches where playerOne="Nick Cobbett" and playerTwo="sam sternberg" OR (playerOne="sam sternberg" and playerTwo="nick cobbett");
+var findHeadToHead = (name1, name2) => {
+  return sequelize.query('SELECT * FROM matches WHERE playerOne=? AND playerTwo=? OR (playerOne=? and playerTwo=?)', { replacements: [name1, name2, name2, name1], type: sequelize.QueryTypes.SELECT});
+};
 
 // for testing with dummy json data
 var addOnePlayer = (name) => {
@@ -76,6 +79,7 @@ var addOneMatch = (match) => {
 };
 
 // exports.createPlayerInstance = createPlayerInstance;
+exports.findHeadToHead = findHeadToHead;
 exports.findMatchesByName = findMatchesByName;
 exports.findOrCreatePlayer = findOrCreatePlayer;
 exports.insertMatches = insertMatches;
@@ -83,6 +87,39 @@ exports.createMatchInstance = createMatchInstance;
 // exports.createPlayers = createPlayers;
 exports.addOnePlayer = addOnePlayer;
 exports.addOneMatch = addOneMatch;
+
+// var findHeadToHead = (name1, name2) => {
+//   return Match.findAll({
+//     where: {
+//       $and: {
+//         $or: [
+//           {
+//             playerOne: {
+//               $eq: name1
+//             }
+//           },
+//           {
+//             playerTwo: {
+//               $eq: name2
+//             }
+//           }
+//         ],
+//         $or: [
+//           {
+//             playerOne: {
+//               $eq: name1
+//             }
+//           },
+//           {
+//             playerTwo: {
+//               $eq: name2
+//             }
+//           }
+//         ]
+//       }
+//     }
+//   });
+// };
 
 
 
