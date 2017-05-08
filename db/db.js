@@ -59,9 +59,9 @@ var Match = sequelize.define('match', {
   loser: {
     type: Sequelize.STRING
   },
-  // score: {
-    // type: Sequelize.INTEGER
-  // },
+  box: {
+    type: Sequelize.STRING
+  },
 
   date: {
     type: Sequelize.STRING

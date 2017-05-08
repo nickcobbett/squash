@@ -21,7 +21,8 @@ var createMatchInstance = (match) => {
     winner: determineWinner(match),
     loser: determineLoser(match),
     date: match[4],
-    id: match[5]
+    id: match[5],
+    box: match[6]
   };
 };
 

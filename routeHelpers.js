@@ -21,6 +21,7 @@ String.prototype.hashCode = function() {
   return hash;
 };
 
+
 var parseMatchScores = (array) => {
   var arr = JSON.parse(JSON.stringify(array));
   var matchScores = [];
@@ -39,6 +40,7 @@ var parseMatchScores = (array) => {
 
 var parseMatchOpponents = (array) => {
   array = JSON.parse(JSON.stringify(array));
+
   var matchUps = [];
   var row = array[0];
   row.shift();
@@ -55,9 +57,9 @@ var generateId = (players, month) => {
   return (players[0] + players[1] + month).hashCode();
 };
 
-var joinMatchData = (players, scores, month) => {
+var joinMatchData = (players, scores, month, box) => {
   return scores.map((score, i) => {
-    return players[i].concat(score, month, generateId(players[i], month));
+    return players[i].concat(score, month, generateId(players[i], month), box);
   });
 };
 
@@ -74,6 +76,8 @@ var scrape = (req, res) => {
 
   var URLStack = ['/feb04.html', '/mar04.html', '/apr04.html', '/may04.html', '/jun04.html', '/jul04.html', '/oct04.html', '/nov04.html', '/jan05.html', '/feb05.html', '/mar06.html', '/apr06.html', '/jul09.html', '/sep09.html', '/nov09.html', '/jul09.html', currentMonth];
 
+  var months = []; // for testing
+
   var fetchURLs = (url, cb) => {
 
     request(url, (err, success, body) => { // TODO: error handling
@@ -83,13 +87,17 @@ var scrape = (req, res) => {
       cheerioTableparser($);
       // var month = url.slice(url.lastIndexOf('/') + 1, -5);
       var month = $('h1').text().slice(24).replace(/ /g, '');
+      months.push(month);
       var tables = [];
+      var box = '';
       $('table').each(function() {
+        box = ($(this).parsetable(false, false, true)).shift()[0];
         tables.push(($(this).parsetable(false, false, true)).slice(1, -2));
       });
+      console.log('####', tables);
       var matches = []; // concat all matches into one array for the month
       tables.forEach(table => {
-        matches = matches.concat(joinMatchData(parseMatchOpponents(table), parseMatchScores(table), month));
+        matches = matches.concat(joinMatchData(parseMatchOpponents(table), parseMatchScores(table), month, box));
       });
       // console.log('matches: ', matches);
 
