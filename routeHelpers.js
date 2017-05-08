@@ -5,6 +5,7 @@ var fs = require('fs');
 var db = require('./db/dbHelpers.js');
 var Promise = require('bluebird');
 
+// generate unique ID for each match to prevent dubplicate entries
 String.prototype.hashCode = function() {
   var hash = 0;
   var i;
@@ -64,15 +65,14 @@ var scrape = (req, res) => {
 
   var baseURL = 'http://www.calsquash.com/boxleague';
   var currentMonth = '/s4.php?file=current.players';
-  var oldestMonth = '/feb04.html';
+  var oldestMonth = '/mar17.html';
 
-  if (req.body.recent) { // only
-    oldestMonth = '/feb17.html';
+  if (JSON.parse(req.body.scrapeAll)) { // only scrape all data if this flag is true, otherwise scrape last few months
+    oldestMonth = '/feb04.html';
   }
 
 
   var URLStack = ['/feb04.html', '/mar04.html', '/apr04.html', '/may04.html', '/jun04.html', '/jul04.html', '/oct04.html', '/nov04.html', '/jan05.html', '/feb05.html', '/mar06.html', '/apr06.html', '/jul09.html', '/sep09.html', '/nov09.html', '/jul09.html', currentMonth];
-  // var URLStack = ['/feb04.html', '/mar04.html'];  // smaller batch for testing
 
   var fetchURLs = (url, cb) => {
 
@@ -200,62 +200,26 @@ var addMatch = (req, res) => {
   });
 };
 
+var getMatchesAll = (req, res) => {
+  db.getMatchesAll().then(success => {
+    res.send(success);
+  }).catch(err => {
+    res.send(err);
+  });
+};
+
+var getPlayersAll = (req, res) => {
+  db.getPlayersAll().then(success => {
+    res.send(success);
+  }).catch(err => {
+    res.send(err);
+  });
+};
+
+exports.getMatchesAll = getMatchesAll;
 exports.getHeadToHead = getHeadToHead;
 exports.getMatchesByName = getMatchesByName;
 exports.scrape = scrape;
 exports.addPlayer = addPlayer;
 exports.addMatch = addMatch;
-
-
-  // var olderMonths = ['/jul03.html', '/aug03.html', '/sep03.html', '/oct03.html', '/nov03.html'];
-
-
-
-// var generatePlayersList = function(matches) {
-//   var players = [];
-//   matches.forEach(match => {
-//     players.push(match[0]);
-//     players.push(match[1]);
-//   });
-
-//   var uniques = players.filter((val, i, array) => {
-//     return array.indexOf(val) === i;
-//   });
-
-//   fs.writeFile('players.json', uniques, (err) => {
-//     if (err) {
-//       throw err;
-//     }
-//     console.log('Players saved!');
-//   });
-//   // return uniques;
-// };
-// // generatePlayersList(matchData);
-
-// var searchForMatchesByName = (matches, name) => {
-//   return matches.filter(match => {
-//     return match[0] === name || match[1] === name;
-//   });
-// };
-// var nicks = searchForMatchesByName(matchData, 'Nick Cobbett');
-// var nickAndSam = searchForMatchesByName(nicks, 'Sam Sternberg');
-// console.log(nickAndSam);
-
-
-
-
-    // //convert file to javasript object
-    // fs.readFile('./matches.json', 'utf-8', ((err, data) => {
-    //   if (err) {
-    //     throw err;
-    //   }
-    //   var arrayOfObjects = JSON.parse(data);
-    //   arrayOfObjects.matches = arrayOfObjects.matches.concat(matches);
-
-    //   fs.writeFile('./matches.json', JSON.stringify(arrayOfObjects), (err) => {
-    //     if (err) {
-    //       throw err;
-    //     }
-    //     console.log('The file has been saved!');
-    //   });
-    // }));
+exports.getPlayersAll = getPlayersAll;
