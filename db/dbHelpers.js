@@ -72,8 +72,41 @@ var getPlayersAll = () => {
   return Player.findAll();
 };
 
+var addPlayers = () => {
+  var names = [];
+  return Match.findAll({ attributes: ['playerOne']})
+    .then(players => {
+      names = players.map(player => {
+        return player.dataValues.playerOne;
+      });
+      Match.findAll({ attributes: ['playerTwo']}).then(players => {
+        names = names.concat(players.map(player => {
+          return player.dataValues.playerTwo;
+        }));
+
+        names = names.filter((val, i, array) => {
+          return array.indexOf(val) === i;
+        });
+
+        var namesPromises = [];
+        names.forEach(name => {
+          namesPromises.push(findOrCreatePlayer(name));
+        });
+        Promise.all(namesPromises)
+        .then(success => {
+          console.log('players added', success);
+        }).catch(err => {
+          console.log('err', err);
+        });
+
+
+
+      });
+    });
+};
 
 // exports.createPlayerInstance = createPlayerInstance;
+exports.addPlayers = addPlayers;
 exports.getMatchesAll = getMatchesAll;
 exports.findHeadToHead = findHeadToHead;
 exports.findMatchesByName = findMatchesByName;

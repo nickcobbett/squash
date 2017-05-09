@@ -108,6 +108,8 @@ var scrape = (req, res) => {
         return match[1];
       })).filter((val, i, arr) => {
         return arr.indexOf(val) === i;
+      }).filter(match => {
+        return (match[2] !== '' && match[3] !== '') && ((match[2] !== '0' && match[3] !== '5') || (match[2] !== '5' && match[3] !== '0'));
       });
 
 
@@ -187,26 +189,14 @@ var getHeadToHead = (req, res) => {
 };
 
 
-
-// the following functions for testing with dummy json
-var addPlayer = (req, res) => {
-  db.addOnePlayer(req.body.name).then(player => {
-    res.send('Muy bueno');
-    console.log(player);
-  }).catch(err => {
-    res.send('No bueno');
-    console.log('Error adding Player', err);
-  });
-};
-
-var addMatch = (req, res) => {
-  db.addOneMatch(req.body).then(match => {
-    console.log(match);
-    res.send('Match saved');
+var addAllPlayers = (req, res) => {
+  db.addPlayers().then(players => {
+    res.send(players);
   }).catch(err => {
     res.send(err);
   });
 };
+
 
 var getMatchesAll = (req, res) => {
   db.getMatchesAll().then(success => {
@@ -224,10 +214,13 @@ var getPlayersAll = (req, res) => {
   });
 };
 
+exports.scrape = scrape;
+exports.addAllPlayers = addAllPlayers;
+exports.getMatchesByName = getMatchesByName;
 exports.getMatchesAll = getMatchesAll;
 exports.getHeadToHead = getHeadToHead;
-exports.getMatchesByName = getMatchesByName;
-exports.scrape = scrape;
-exports.addPlayer = addPlayer;
-exports.addMatch = addMatch;
 exports.getPlayersAll = getPlayersAll;
+// exports.addPlayer = addPlayer;
+// exports.addMatch = addMatch;
+
+
