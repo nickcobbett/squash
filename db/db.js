@@ -32,6 +32,12 @@ var Player = sequelize.define('player', {
   active: {
     type: Sequelize.BOOLEAN
   },
+  skill1: {
+    type: Sequelize.REAL
+  },
+  skill2: {
+    type: Sequelize.REAL
+  }
 });
 
 var Match = sequelize.define('match', {

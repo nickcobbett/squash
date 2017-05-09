@@ -125,9 +125,9 @@ var scrape = (req, res) => {
 
 
       // prepare match data to send to db
-      // filter empty matches
+      // filter empty matches and walkovers
       var completedMatches = matches.filter(match => {
-        return match[2] !== '' && match[3] !== '';
+        return (match[2] !== '' && match[3] !== '') && ((match[2] !== '0' && match[3] !== '5') || (match[2] !== '5' && match[3] !== '0'));
       });
       // prepare matches for bulk insert
       var matchInstances = completedMatches.map(match => {

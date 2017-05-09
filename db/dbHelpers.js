@@ -36,7 +36,8 @@ var insertMatches = (matchInstances) => {
 
 var findOrCreatePlayer = (playerName) => {
   return Player.findOrCreate({
-    where: {name: playerName}
+    where: {name: playerName},
+    defaults: {skill1: 25, skill2: 25 / 3.0}
   });
 };
 
