@@ -4,22 +4,20 @@ var sequelize = require('./db.js');
 var Player = sequelize.define('player', {
   name: {
     type: Sequelize.STRING,
+    primaryKey: true,
     unique: true
   },
-  wins: {
-    type: Sequelize.INTEGER,
-    autoIncrement: true
-  },
-  losses: {
-    type: Sequelize.INTEGER,
-    autoIncrement: true
-  },
+  // wins: {
+  //   type: Sequelize.INTEGER
+  // },
+  // losses: {
+  //   type: Sequelize.INTEGER
+  // },
   rank: {
     type: Sequelize.INTEGER
   },
   matches: {
-    type: Sequelize.INTEGER,
-    autoIncrement: true
+    type: Sequelize.INTEGER
   },
   active: {
     type: Sequelize.BOOLEAN
@@ -52,6 +50,12 @@ var Match = sequelize.define('match', {
     type: Sequelize.STRING
   },
 });
+
+// adds playerID to match
+// instances of players now has getWinners
+// Player.hasMany(Match, {as: 'Winners'})
+
+
 
 module.exports.Player = Player;
 module.exports.Match = Match;

@@ -214,12 +214,22 @@ var getPlayersAll = (req, res) => {
   });
 };
 
+var getPlayersByName = (req, res) => {
+  console.log(req.params.name);
+  db.findOrCreatePlayer(req.params.name).then(player => {
+    res.send(player);
+  }).catch(err => {
+    res.send(err);
+  });
+};
+
 exports.scrape = scrape;
 exports.addAllPlayers = addAllPlayers;
 exports.getMatchesByName = getMatchesByName;
 exports.getMatchesAll = getMatchesAll;
 exports.getHeadToHead = getHeadToHead;
 exports.getPlayersAll = getPlayersAll;
+exports.getPlayersByName = getPlayersByName;
 // exports.addPlayer = addPlayer;
 // exports.addMatch = addMatch;
 
