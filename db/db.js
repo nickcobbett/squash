@@ -15,6 +15,7 @@ var sequelize = new Sequelize('squash', 'root', '', {
 var Player = sequelize.define('player', {
   name: {
     type: Sequelize.STRING,
+    primaryKey: true,
     unique: true
   },
   wins: {
@@ -68,7 +69,6 @@ var Match = sequelize.define('match', {
   box: {
     type: Sequelize.STRING
   },
-
   date: {
     type: Sequelize.STRING
   },
