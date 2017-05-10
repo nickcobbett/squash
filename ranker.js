@@ -22,6 +22,7 @@ var adjustSkills = (winner, loser) => { //player1 = {id: 123, name: nick, skill1
 };
 
 var updateSkillsInDB = (req, res) => {
+
   Match.findAll({ attributes: ['winner', 'loser']})
   .each(match => {
     var winnerName = match.dataValues.winner;
