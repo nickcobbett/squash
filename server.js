@@ -12,6 +12,7 @@ app.get('/matches/:name', router.getMatchesByName);
 app.get('/matches/headtohead/:playerOne/:playerTwo', router.getHeadToHead);
 app.get('/players', router.getPlayersAll);
 app.get('/players/:name', router.getPlayersByName);
+app.get('/rankings', router.getPlayersByRank);
 
 app.post('/players', router.addAllPlayers);
 app.post('/matches', router.scrape);

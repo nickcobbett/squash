@@ -94,7 +94,7 @@ var scrape = (req, res) => {
         box = ($(this).parsetable(false, false, true)).shift()[0];
         tables.push(($(this).parsetable(false, false, true)).slice(1, -2));
       });
-      console.log('####', tables);
+      // console.log('####', tables);
       var matches = []; // concat all matches into one array for the month
       tables.forEach(table => {
         matches = matches.concat(joinMatchData(parseMatchOpponents(table), parseMatchScores(table), month, box));
@@ -223,6 +223,17 @@ var getPlayersByName = (req, res) => {
   });
 };
 
+var getPlayersByRank = (req, res) => {
+  db.getPlayersByRank().then(results => {
+    fs.writeFile('rank.md', results, (err, success) => {
+      res.send(results);
+    });
+  }).catch(err => {
+    res.send(err);
+  });
+};
+
+exports.getPlayersByRank = getPlayersByRank;
 exports.scrape = scrape;
 exports.addAllPlayers = addAllPlayers;
 exports.getMatchesByName = getMatchesByName;

@@ -37,7 +37,7 @@ var insertMatches = (matchInstances) => {
 var findOrCreatePlayer = (playerName) => {
   return Player.findOrCreate({
     where: {name: playerName},
-    defaults: {skill1: 25, skill2: 25 / 3.0}
+    defaults: {skill1: 25, skill2: 25 / 3.0, wins: 0, losses: 0, matches: 0}
   });
 };
 
@@ -98,16 +98,17 @@ var addPlayers = () => {
         }).catch(err => {
           console.log('err', err);
         });
-
-
-
       });
     });
 };
 
+var getPlayersByRank = () => {
+  return Player.findAll({order: [['skill1', 'DESC']]});
+};
 
 
 // exports.createPlayerInstance = createPlayerInstance;
+exports.getPlayersByRank = getPlayersByRank;
 exports.addPlayers = addPlayers;
 exports.getMatchesAll = getMatchesAll;
 exports.findHeadToHead = findHeadToHead;

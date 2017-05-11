@@ -29,7 +29,7 @@ var updateSkillsInDB = (req, res) => {
     var loserName = match.dataValues.loser;
 
     //find winner and loser
-    return (Promise.all([Player.findById(winnerName, { attributes: ['name', 'skill1', 'skill2']}), Player.findById(loserName, { attributes: ['name', 'skill1', 'skill2']})])
+    return (Promise.all([Player.findById(winnerName, { attributes: ['name', 'wins', 'losses', 'matches', 'skill1', 'skill2']}), Player.findById(loserName, { attributes: ['name', 'wins', 'losses', 'matches', 'skill1', 'skill2']})])
     .then(results => {
       //adjust skills
       var winner = results[0];
@@ -41,7 +41,7 @@ var updateSkillsInDB = (req, res) => {
     })
     .then(results => {
       // update new skill values for winner and loser
-      return Promise.all([results[0].update({skill1: results[0].dataValues.skill1, skill2: results[0].dataValues.skill2}), results[1].update({skill1: results[1].dataValues.skill1, skill2: results[1].dataValues.skill2})]);
+      return Promise.all([results[0].update({wins: results[0].dataValues.wins + 1, matches: results[0].dataValues.matches + 1, skill1: results[0].dataValues.skill1, skill2: results[0].dataValues.skill2}), results[1].update({losses: results[1].dataValues.losses + 1, matches: results[1].dataValues.matches + 1, skill1: results[1].dataValues.skill1, skill2: results[1].dataValues.skill2})]);
     }))
     .then(success => {
       console.log('One match updated');
